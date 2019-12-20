@@ -12,7 +12,8 @@ class Planets extends React.Component {
     this.state = {
       searchTerm: '',
       planets: [],
-      planet: {}
+      planet: {},
+      largestPlanetIndex: 0
     };
 
     this.handleChange = this.handleChange.bind(this);
@@ -22,7 +23,13 @@ class Planets extends React.Component {
   }
 
   componentDidMount() {
-    this.props.getPlanetsData();
+    this.props.getPlanetsData(this.props.url);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.fullData.next !== null && this.props.fullData !== prevProps.fullData) {
+      this.props.getPlanetsData(this.props.url);
+    }
   }
 
   handleLogout() {
@@ -32,9 +39,18 @@ class Planets extends React.Component {
   searchPlanet() {
     if(this.state.searchTerm.length !== 0) {
       let filteredPlanets = this.props.planets.filter(planet => planet.name.startsWith(this.state.searchTerm));
-      this.setState({ planets: filteredPlanets });
+      let highestPopulationPlanet = 0, highestIndex = 0;
+      filteredPlanets.forEach((key, index) => {
+        if(isNaN(key.population) === false) {
+          if(key.population > highestPopulationPlanet) {
+            highestPopulationPlanet = key.population;
+            highestIndex = index;
+          }
+        }
+      });
+      this.setState({ planets: filteredPlanets, largestPlanetIndex: highestIndex });
     } else {
-      this.setState({ planets: [], planet: {} });
+      this.setState({ planets: [], planet: {}, largestPlanetIndex: 0 });
     }
   }
 
@@ -47,13 +63,13 @@ class Planets extends React.Component {
   }
 
   render() {
-    let { planets, planet } = this.state;
+    let { planets, planet, largestPlanetIndex } = this.state;
       return (
         <div>
           <Grid>
             <Grid.Column width={4} />
             <Grid.Column width={6}>
-              <Form style={{   marginTop: '100px' }} onSubmit={this.onSubmit}>
+              <Form style={{ marginTop: '100px' }} onSubmit={this.onSubmit}>
                 <Form.Input
                   inline
                   label="Search for planets"
@@ -67,12 +83,12 @@ class Planets extends React.Component {
             </Grid.Column>
             <Grid.Column width={16} style={{ marginTop: '30px', textAlign: 'center' }}>
               {<ul className="planets">
-                {planets && planets.map(planet => (
-                  <li key={planet.name} onClick={() => this.onPlanetClick(planet)}>
+                {planets && planets.map((planet, index) => (
+                  <li key={planet.name} onClick={() => this.onPlanetClick(planet)} style={{backgroundColor: largestPlanetIndex === index ? '#800000c4': 'transparent'}}>
                     <div className="image">
                       <img src={planetLogo} alt="planet" />
-                      <div className="overlay">{planet.name}</div>
-                    </div>  
+                    </div>
+                    <div className="overlay">{planet.name}</div>
                   </li>
                 ))}
               </ul>}
@@ -118,7 +134,7 @@ class Planets extends React.Component {
 }
 
 const mapStateToProps = (state) => {
-  return { planets: state.data.planets };
+  return { planets: state.data.planets, url: state.url.url, fullData: state.fullData.dataObject };
 };
 
 export default connect(mapStateToProps, { getPlanetsData })(Planets);

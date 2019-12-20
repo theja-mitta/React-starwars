@@ -12,7 +12,6 @@ h1, p {
 }
 
 .planets li {
-  display: flex;
   justify-content: center;
   align-items: center;
   width: 150px;
@@ -23,10 +22,22 @@ h1, p {
   transition: transform .4s; /* Animation */
 }
 
+.planets li img {
+  transition: transform .4s; /* Animation */
+}
+
 .planets li:hover {
   box-shadow: 0rem 0.2777777777777778rem 0.9888888888888888rem 0.4555555555555556rem rgba(224,224,224,1);
   cursor: pointer;
   opacity: 1;
+  transform: scale(1.5);
+}
+
+.planets li .image {
+  overflow: hidden;
+}
+
+.planets li:hover img {
   transform: scale(1.5);
 }
 
